@@ -1,0 +1,6 @@
+@mtHopeApiProject_HostAddress = http://localhost:5275
+
+GET {{mtHopeApiProject_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
