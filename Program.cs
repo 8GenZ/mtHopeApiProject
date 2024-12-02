@@ -6,18 +6,47 @@ using Microsoft.OpenApi.Models;
 using mtHopeApiProject.Data;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-
 var builder = WebApplication.CreateBuilder(args);
+
+// Add User Secrets in Development environment
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
+// Enable CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowSpecificOrigins",
+        builder =>
+        {
+            builder.WithOrigins("https://localhost:7181") // Add the URL of your UI project
+                   .AllowAnyHeader()
+                   .AllowAnyMethod()
+                   .AllowCredentials();
+        });
+});
 
 // Add services to the container.
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+    .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
+    .EnableTokenAcquisitionToCallDownstreamApi()
+    .AddInMemoryTokenCaches();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ApiScopePolicy", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim("scp", "api.write"); // Ensure the access token has this scope
+    });
+});
 
 builder.Services.AddControllers();
 
 // Add Entity Framework and configure In-Memory Database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("RecipientDb"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add Swagger/OpenAPI support using Swashbuckle
 builder.Services.AddEndpointsApiExplorer(); // Adds support for endpoint discovery
@@ -44,6 +73,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseRouting();
+app.UseStaticFiles();
+
+app.UseCors("AllowSpecificOrigins");
 
 app.UseAuthentication();
 app.UseAuthorization();
