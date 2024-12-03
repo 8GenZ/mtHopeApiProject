@@ -11,7 +11,7 @@ using mtHopeApiProject.Models;
 
 namespace mtHopeApiProject.Controllers
 {
-    [Authorize(Policy = "ApiScopePolicy")]
+    //[Authorize(Policy = "ApiScopePolicy")]
     [Route("api/[controller]")]
     [ApiController]
     public class FormSubmissionsController : ControllerBase
