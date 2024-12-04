@@ -16,11 +16,11 @@ env:
   SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION: 5.6.3
   SWASHBUCKLE_DOTNET_CORE_VERSION: 3.1.x
   API_IMPORT_SPECIFICATION_PATH: ./publish/swagger.json
-  API_IMPORT_DLL: ./bin/Release/net9.0/mtHopeApiProject.dll
+  API_IMPORT_DLL: ./mtHopeApiProject_Restored/bin/Release/net9.0/mtHopeApiProject.dll
   API_IMPORT_VERSION: v1
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 9.0.x
-  WORKING_DIRECTORY: ./mtHopeApiProject  # Make sure this points to the correct folder.
+  WORKING_DIRECTORY: ./mtHopeApiProject_Restored  # Updated to match your folder name.
 
 jobs:
   build:
