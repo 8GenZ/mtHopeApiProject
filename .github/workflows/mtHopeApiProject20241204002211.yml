@@ -1,36 +1,91 @@
-name: Build and Deploy API
+name: Build and deploy .NET Core application to Web App mtHopeApiProject20241204002211 with API Management Service mtHopeApiProjectapi-mtHopeApiProject
 
 on:
   push:
     branches:
-      - main
-  pull_request:
-    branches:
-      - main
+      - master
+
+env:
+  AZURE_WEBAPP_NAME: mtHopeApiProject20241204002211
+  AZURE_WEBAPP_PACKAGE_PATH: ./publish
+  AZURE_APIM_RESOURCE_PATH: /
+  AZURE_APIM_RESOURCEGROUP: MtHopeResourceGroup
+  AZURE_APIM_SERVICENAME: mtHopeApiProjectapi
+  AZURE_APIM_API_ID: mtHopeApiProject
+  AZURE_APIM_APPSERVICEURL: https://mthopeapiproject20241204002211.azurewebsites.net
+  SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION: 5.6.3
+  SWASHBUCKLE_DOTNET_CORE_VERSION: 3.1.x
+  API_IMPORT_SPECIFICATION_PATH: ./publish/swagger.json
+  API_IMPORT_DLL: ./bin/Release/net9.0/mtHopeApiProject.dll
+  API_IMPORT_VERSION: v1
+  CONFIGURATION: Release
+  DOTNET_CORE_VERSION: 9.0.x
+  WORKING_DIRECTORY: ./mtHopeApiProject  # Make sure this points to the correct folder.
 
 jobs:
   build:
-    runs-on: ubuntu-latest
-
+    runs-on: windows-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
-      - name: Set up .NET
-        uses: actions/setup-dotnet@v3
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
 
-      - name: Restore dependencies
-        run: dotnet restore mtHopeApiProject/mtHopeApiProject.sln
+      - name: Setup SwashBuckle .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.SWASHBUCKLE_DOTNET_CORE_VERSION }}
+
+      - name: Restore
+        run: dotnet restore ${{ env.WORKING_DIRECTORY }}
 
       - name: Build
-        run: dotnet build --configuration Release mtHopeApiProject/mtHopeApiProject.sln
+        run: dotnet build ${{ env.WORKING_DIRECTORY }} --configuration ${{ env.CONFIGURATION }} --no-restore
 
-      - name: Deploy to Azure
-        env:
-          AZURE_WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
-          AZURE_WEBAPP_PACKAGE_PATH: '.'
-          AZURE_SUBSCRIPTION: ${{ secrets.AZURE_SUBSCRIPTION }}
-        run: |
-          # Use Azure CLI or another deploy method here to publish the API to Azure
+      - name: Test
+        run: dotnet test ${{ env.WORKING_DIRECTORY }} --no-build
+
+      - name: Publish
+        run: dotnet publish ${{ env.WORKING_DIRECTORY }} --configuration ${{ env.CONFIGURATION }} --no-build --output ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      - name: Install Swashbuckle CLI .NET Global Tool
+        run: dotnet tool install --global Swashbuckle.AspNetCore.Cli --version ${{ env.SWASHBUCLE_ASPNET_CORE_CLI_PACKAGE_VERSION }}
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+      - name: Generate Open API Specification Document
+        run: swagger tofile --output "${{ env.API_IMPORT_SPECIFICATION_PATH }}" "${{ env.API_IMPORT_DLL }}" "${{ env.API_IMPORT_VERSION }}"
+
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+  deploy:
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.mtHopeApiProjectapi_SPN }}
+
+      - name: Deploy to Azure WebApp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      - name: Import API into Azure API Management
+        run: az apim api import --path "${{ env.AZURE_APIM_RESOURCE_PATH }}" --resource-group "${{ env.AZURE_APIM_RESOURCEGROUP }}" --service-name "${{ env.AZURE_APIM_SERVICENAME }}" --api-id "${{ env.AZURE_APIM_API_ID }}" --service-url "${{ env.AZURE_APIM_APPSERVICEURL }}" --specification-path "${{ env.API_IMPORT_SPECIFICATION_PATH }}" --specification-format OpenApi --subscription-required false
+
+      - name: Logout
+        run: az logout
