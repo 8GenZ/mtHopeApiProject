@@ -18,7 +18,7 @@ env:
   API_IMPORT_VERSION: v1
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 9.0.x
-  WORKING_DIRECTORY: ./mtHopeApiProject_Restored
+  WORKING_DIRECTORY: ./mtHopeApiProject
 jobs:
   build:
     runs-on: windows-latest
