@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
     .EnableTokenAcquisitionToCallDownstreamApi()
@@ -44,7 +44,6 @@ builder.Services.AddAuthorization(options =>
 
 builder.Services.AddControllers();
 
-
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
@@ -54,9 +53,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             errorNumbersToAdd: null)
     ));
 
-
 // Add Swagger/OpenAPI support using Swashbuckle
-builder.Services.AddEndpointsApiExplorer(); // Adds support for endpoint discovery
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
@@ -69,26 +67,32 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Middleware for detailed error logging
+app.Use(async (context, next) =>
 {
-    app.UseSwagger(); // Generate OpenAPI specification
-    app.UseSwaggerUI(options =>
+    try
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipient API v1");
-    });
-}
+        await next();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Unhandled exception: {ex}");
+        throw;
+    }
+});
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Recipient API v1");
+    options.RoutePrefix = string.Empty; // Serve Swagger at the root
+});
 
 app.UseHttpsRedirection();
-
 app.UseRouting();
 app.UseStaticFiles();
-
 app.UseCors("AllowSpecificOrigins");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
