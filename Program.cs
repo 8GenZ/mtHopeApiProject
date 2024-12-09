@@ -55,7 +55,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             maxRetryCount: 5,
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null)
-    ));
+    )
+    .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information) // Add detailed SQL logs
+    .EnableSensitiveDataLogging() // Enable sensitive data logging for troubleshooting
+);
 
 // Add Swagger/OpenAPI support using Swashbuckle
 builder.Services.AddEndpointsApiExplorer();
