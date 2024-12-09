@@ -56,9 +56,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(30),
             errorNumbersToAdd: null)
     )
-    .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information) // Add detailed SQL logs
-    .EnableSensitiveDataLogging() // Enable sensitive data logging for troubleshooting
+    .LogTo(Console.WriteLine, Microsoft.Extensions.Logging.LogLevel.Information) // Log queries
+    .EnableSensitiveDataLogging() // Log sensitive data like parameter values
 );
+
+// Add Logging Services
+builder.Services.AddLogging(logging =>
+{
+    logging.ClearProviders();
+    logging.AddConsole(); // Log to the console for diagnostics
+});
 
 // Add Swagger/OpenAPI support using Swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -74,7 +81,6 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Middleware for detailed error logging
 app.Use(async (context, next) =>
 {
     try

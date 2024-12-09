@@ -106,5 +106,13 @@ namespace mtHopeApiProject.Controllers
         {
             return _context.Recipients.Any(e => e.Id == id);
         }
+
+        [HttpGet("test")]
+        public IActionResult Test()
+        {
+            return Ok(new { message = "API is working fine" });
+        }
+
+
     }
 }
