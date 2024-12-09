@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using mtHopeApiProject.Data;
@@ -64,7 +65,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddLogging(logging =>
 {
     logging.ClearProviders();
-    logging.AddConsole(); // Log to the console for diagnostics
+    logging.AddConsole();
+    logging.AddFile("Logs/app-{Date}.log", fileSizeLimitBytes: 10_000_000, retainedFileCountLimit: 5);
 });
 
 // Add Swagger/OpenAPI support using Swashbuckle
