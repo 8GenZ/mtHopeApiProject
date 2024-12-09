@@ -14,6 +14,10 @@ if (builder.Environment.IsDevelopment())
     builder.Configuration.AddUserSecrets<Program>();
 }
 
+// Disable AzureBlobTraceListener completely by clearing all providers
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole(); // Add console logging for local debugging
+
 // Enable CORS
 builder.Services.AddCors(options =>
 {
