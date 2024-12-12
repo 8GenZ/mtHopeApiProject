@@ -9,8 +9,5 @@ namespace mtHopeApiProject.Models
         public string Email { get; set; }
         public string Message { get; set; }
         public DateTime SubmissionDate { get; set; }
-        [Required]
-        public int RecipientId { get; set; }
-        public Recipient Recipient { get; set; }
     }
 }

@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using mtHopeApiProject.Data;
 using mtHopeApiProject.Models;
 
-namespace mtHopeApiProject.Controllers
+namespace mtHopeApiProject.Controllersa
 {
     //[Authorize(Policy = "ApiScopePolicy")]
     [Route("api/[controller]")]
@@ -53,7 +53,7 @@ namespace mtHopeApiProject.Controllers
             {
                 return BadRequest();
             }
-
+            formSubmission.SubmissionDate = DateTime.Now;
             _context.Entry(formSubmission).State = EntityState.Modified;
 
             try
@@ -80,6 +80,7 @@ namespace mtHopeApiProject.Controllers
         [HttpPost]
         public async Task<ActionResult<FormSubmission>> PostFormSubmission(FormSubmission formSubmission)
         {
+            formSubmission.SubmissionDate = DateTime.Now;
             _context.FormSubmissions.Add(formSubmission);
             await _context.SaveChangesAsync();
 
