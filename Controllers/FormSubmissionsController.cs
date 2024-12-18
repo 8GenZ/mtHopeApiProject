@@ -93,7 +93,7 @@ namespace mtHopeApiProject.Controllersa
             // Send the email
             try
             {
-                await _emailService.SendEmailAsync("jonachav6414@gmail.com", subject, body);
+                await _emailService.SendEmailAsync("Mthopeletters@gmail.com", subject, body);
             }
             catch (Exception ex)
             {
