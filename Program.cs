@@ -79,9 +79,9 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo
     {
-        Title = "Recipient API",
+        Title = "Mt Hope API Project",
         Version = "v1",
-        Description = "API for managing recipients of forms."
+        Description = "API for managing messages."
     });
 });
 
