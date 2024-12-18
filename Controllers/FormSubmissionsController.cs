@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using mtHopeApiProject.Data;
 using mtHopeApiProject.Models;
+using mtHopeApiProject.Services.EmailService;
 
 namespace mtHopeApiProject.Controllersa
 {
@@ -17,10 +18,12 @@ namespace mtHopeApiProject.Controllersa
     public class FormSubmissionsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public FormSubmissionsController(ApplicationDbContext context)
+        public FormSubmissionsController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: api/FormSubmissions
@@ -80,13 +83,27 @@ namespace mtHopeApiProject.Controllersa
         [HttpPost]
         public async Task<ActionResult<FormSubmission>> PostFormSubmission(FormSubmission formSubmission)
         {
-            formSubmission.SubmissionDate = DateTime.Now;
             _context.FormSubmissions.Add(formSubmission);
             await _context.SaveChangesAsync();
 
+            // Build email subject and message
+            var subject = $"You've Got a Letter from {formSubmission.Name}- {formSubmission.Email}";
+            var body = $"<h1> You've Got a Letter! </h1><p><strong>Recipient:</strong> {formSubmission.Recipient}</p> <p>{formSubmission.Message}</p>";
+
+            // Send the email
+            try
+            {
+                await _emailService.SendEmailAsync("jonachav6414@gmail.com", subject, body);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error sending email: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to send email.");
+            }
+
             return CreatedAtAction("GetFormSubmission", new { id = formSubmission.Id }, formSubmission);
         }
-
+        
         // DELETE: api/FormSubmissions/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFormSubmission(int id)

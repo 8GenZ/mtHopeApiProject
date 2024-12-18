@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using mtHopeApiProject.Data;
+using mtHopeApiProject.Services.EmailService;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,6 +69,9 @@ builder.Services.AddLogging(logging =>
     logging.AddConsole();
     logging.AddFile("Logs/app-{Date}.log", fileSizeLimitBytes: 10_000_000, retainedFileCountLimit: 5);
 });
+
+builder.Services.Configure<SmtpSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 // Add Swagger/OpenAPI support using Swashbuckle
 builder.Services.AddEndpointsApiExplorer();
